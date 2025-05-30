@@ -1,3 +1,4 @@
+from datetime import datetime
 import email
 import os
 import time
@@ -49,6 +50,20 @@ def test_db(data):
         session.close()
 
 
+def touch(email, timestamp: datetime):
+    session = SessionLocal()
+
+    try:
+        with session.begin():
+            session.execute(text("update account set last_touch=:timestamp where email=:email"), {"email": email, "timestamp": timestamp})
+    except Exception as e:
+        session.rollback()
+        logger.error(f"DB account update failed: {e}")
+        raise
+    finally:
+        session.close()
+
+
 def hibp(email, max_retries=3):
     url = f"{config.HIBP_API_URL}/breachedaccount/{quote_plus(email)}?truncateResponse=false"
     headers = {
@@ -62,6 +77,7 @@ def hibp(email, max_retries=3):
         r = requests.get(url, headers=headers)
         if r.status_code == 200:
             try:
+                touch(email, datetime.now())
                 return r.json()
             except ValueError:
                 logger.error(f"Invalid JSON response for {email}")
