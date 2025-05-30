@@ -1,1 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Env
 .env
+venv/
+.venv/
+
+# PyCharm
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
