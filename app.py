@@ -215,6 +215,27 @@ def get_account(email):
     finally:
         session.close()
 
+
+def get_account_breaches(email):
+    session = SessionLocal()
+    try:
+        with session.begin():
+            account_breaches = session.execute(text("""
+                SELECT a.email, b.name, b.modified_date
+                FROM account AS a
+                INNER JOIN account_breach AS ab ON a.id = ab.account_id
+                INNER JOIN breach AS b ON ab.breach_id = b.id
+                WHERE a.email = ':email';
+            """), {'email': email})
+            return account_breaches.mappings().fetchall() if account_breaches else None
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to get account breaches for {email}: {e}")
+        raise
+    finally:
+        session.close()
+
+
 def subscribe(email):
     # Add account to Postgres
     session = SessionLocal()
@@ -345,6 +366,28 @@ def hibp_route():
         return jsonify({"error": str(e)}), 500
 
     return Response(status=204)
+
+
+@app.route('/hibp/account/breaches', methods=['POST'])
+def hibp_account_breaches_route():
+    data = request.get_json(silent=True)
+    if not data or 'email' not in data:
+        return jsonify({'error': 'Missing email'}), 400
+
+    try:
+        email_info = validate_email(data['email'])
+        email = email_info.normalized
+    except EmailNotValidError as e:
+        return jsonify({'error': str(e)}), 400
+
+    account_breaches = get_account_breaches(email)
+    if account_breaches is None:
+        return jsonify({'error': f'Failed to retrieve breaches for {email}'}), 502
+
+
+    return jsonify({'breaches': account_breaches}), 200
+
+
 
 
 if __name__ == '__main__':
