@@ -116,12 +116,81 @@ def parse_urls(string):
     return matches
 
 
-def insert_breach(breach):
+def upsert_breach(breach):
     session = SessionLocal()
     try:
-        session.execute(text(""), {})
+        session.execute(text("""
+            INSERT INTO breach (
+            name, title, domain, breach_date, added_date, modified_date, 
+            pwn_count, description, logo_path, data_classes, is_verified,
+            is_fabricated, is_sensitive, is_retired, is_spam_list, is_malware, 
+            is_subscription_free, is_stealer_log
+            )
+            VALUES (:name, :title, :domain, :breach_date, :added_date, :modified_date, 
+                   :pwn_count, :description, :logo_path, :data_classes, :is_verified, 
+                   :is_fabricated, :is_sensitive, is_retired, :is_spam_list, :is_malware, 
+                   :is_subscription_free, is_stealer_log
+            )
+            ON CONFLICT (name) DO UPDATE SET
+                title = EXCLUDED.title,
+                domain = EXCLUDED.domain,
+                breach_date = EXCLUDED.added_date,
+                added_date = EXCLUDED.modified_date,
+                modified_date = EXCLUDED.modified_date,
+                pwn_count = EXCLUDED.pwn_count,
+                description = EXCLUDED.description,
+                logo_path = EXCLUDED.logo_path,
+                data_classes = EXCLUDED.data_classes,
+                is_verified = EXCLUDED.is_verified,
+                is_fabricated = EXCLUDED.is_fabricated,
+                is_sensitive = EXCLUDED.is_sensitive,
+                is_retired = EXCLUDED.is_retired,
+                is_spam_list = EXCLUDED.is_spam_list,
+                is_malware = EXCLUDED.is_malware,
+                is_subscription_free = EXCLUDED.is_subscription_free,
+                is_stealer_log = EXCLUDED.is_stealer_log
+            WHERE
+                breach.title IS DISTINCT FROM EXCLUDED.title OR
+                breach.domain IS DISTINCT FROM EXCLUDED.domain OR
+                breach.breach_date IS DISTINCT FROM EXCLUDED.added_date OR
+                breach.added_date IS DISTINCT FROM EXCLUDED.modified_date OR
+                breach.modified_date IS DISTINCT FROM EXCLUDED.modified_date OR
+                breach.pwn_count IS DISTINCT FROM EXCLUDED.pwn_count OR
+                breach.description IS DISTINCT FROM EXCLUDED.description OR
+                breach.logo_path IS DISTINCT FROM EXCLUDED.logo_path OR
+                breach.data_clases IS DISTINCT FROM EXCLUDED.data_classes OR
+                breach.is_verified IS DISTINCT FROM EXCLUDED.is_verified OR
+                breach.is_fabricated IS DISTINCT FROM EXCLUDED.is_fabricated OR
+                breach.is_sensitive IS DISTINCT FROM EXCLUDED.is_sensitive OR
+                breach.is_retired IS DISTINCT FROM EXCLUDED.is_retired OR
+                breach.is_spam_list IS DISTINCT FROM EXCLUDED.spam_list OR
+                breach.is_malware IS DISTINCT FROM EXCLUDED.malware OR
+                breach.is_subscription_free IS DISTINCT FROM EXCLUDED.subscription_free OR
+                breach.is_stealer_log IS DISTINCT FROM EXCLUDED.stealer_log 
+        """), {
+            'name': breach['name'],
+            'title': breach['title'],
+            'domain': breach['domain'],
+            'breach_date': breach['added_date'],
+            'added_date': breach['modified_date'],
+            'modified_date': breach['modified_date'],
+            'pwn_count': breach['pwn_count'],
+            'description': breach['description'],
+            'logo_path': breach['logo_path'],
+            'data_classes': breach['data_classes'],
+            'is_verified': breach['is_verified'],
+            'is_fabricated': breach['is_fabricated'],
+            'is_sensitive': breach['is_sensitive'],
+            'is_retired': breach['is_retired'],
+            'is_spam_list': breach['is_spam_list'],
+            'is_malware': breach['is_malware'],
+            'is_subscription_free': breach['is_subscription_free'],
+            'is_stealer_log': breach['is_stealer_log']
+        })
     except Exception as e:
-        pass
+        session.rollback()
+        logger.error(f"Failed to upsert breach {breach.get('Name')}: {e}")
+        raise
     finally:
         session.close()
 
