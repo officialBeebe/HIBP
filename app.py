@@ -3,6 +3,7 @@ import email
 import os
 import time
 import logging
+import asyncio
 
 from flask import Flask
 from flask import request
@@ -12,6 +13,7 @@ import dotenv
 from urllib.parse import quote_plus
 import requests
 from sqlalchemy.orm import scoped_session, sessionmaker
+from pgnotify import await_pg_notifications
 
 dotenv.load_dotenv()
 
@@ -37,18 +39,6 @@ engine = create_engine(config.db_url, pool_pre_ping=True)
 SessionLocal = scoped_session(sessionmaker(bind=engine))
 app = Flask(__name__)
 
-def test_db(data):
-    session = SessionLocal()
-    try:
-        with session.begin():
-            session.execute(text("insert into test (test_column) values (:data)"), {"data": data})
-    except Exception as e:
-        session.rollback()
-        logger.error(f"DB test insert failed: {e}")
-        raise
-    finally:
-        session.close()
-
 
 def touch(email, timestamp: datetime):
     session = SessionLocal()
@@ -58,7 +48,22 @@ def touch(email, timestamp: datetime):
             session.execute(text("update account set last_touch=:timestamp where email=:email"), {"email": email, "timestamp": timestamp})
     except Exception as e:
         session.rollback()
-        logger.error(f"DB account update failed: {e}")
+        logger.error(f"DB account.last_touch update failed: {e}")
+        raise
+    finally:
+        session.close()
+
+
+def get_touch(email):
+    session = SessionLocal()
+
+    try:
+        with session.begin():
+            last_touch = session.execute(text("select last_touch from account where email=:email"), {"email": email})
+            return last_touch.scalar()
+    except Exception as e:
+        session.rollback()
+        logger.error(f"DB account.last_touch select failed: {e}")
         raise
     finally:
         session.close()
@@ -100,69 +105,138 @@ def hibp(email, max_retries=3):
     return None
 
 
-def ses_alert(results):
+def parse_urls():
     pass
 
 
-@app.post("/test")
-def test():
-    data = request.get_json()
-    test_db(data["test"])
-    return {"status": "success"}
+def insert_breach(breach):
+    session = SessionLocal()
+    try:
+        session.execute(text(""), {})
+    except Exception as e:
+        pass
+    finally:
+        session.close()
+
+
+def insert_account_breach():
+    session = SessionLocal()
+    try:
+        pass
+    except Exception as e:
+        pass
+    finally:
+        session.close()
+
+
+def alert(email, results):
+    # Trigger AWS SES alert for an email
+    pass
+
+
+def subscribe(email):
+    # Add account to Postgres
+    session = SessionLocal()
+    try:
+        with session.begin():
+            session.execute(text("insert into account (email) values (:email)"), {"email": email})
+    except Exception as e:
+        session.rollback()
+        logger.error(f"DB account insert failed: {e}")
+        raise
+    finally:
+        session.close()
+
+
+def unsubscribe(email):
+    session = SessionLocal()
+    try:
+        with session.begin():
+            session.execute(text("delete from account where email=:email"), {"email": email})
+    except Exception as e:
+        session.rollback()
+        logger.error(f"DB account delete failed: {e}")
+        raise
+    finally:
+        session.close()
+
+@app.route('/', methods=['GET'])
+def index_route():
+    return '''
+            <h1>Welcome to the Have I Been Pwned Alert App!</h1>
+            <p><a href="/subscribe">Subscribe</a> | <a href="/unsubscribe">Unsubscribe</a></p>
+        '''
+
 
 @app.route('/subscribe', methods=['GET', 'POST'])
-def subscribe():
-    def _subscribe(email):
-        # Add account to Postgres
-        session = SessionLocal()
-        try:
-            with session.begin():
-                session.execute(text("insert into account (email) values (:email)"), {"email": email})
-        except Exception as e:
-            session.rollback()
-            logger.error(f"DB account insert failed: {e}")
-            raise
-        finally:
-            session.close()
-
-        # Run hibp() for new subscriber's email
-        results = hibp(email)
-        if results:
-            ses_alert(results)
-
-        return {"status": "subscribed", "breaches": results}
-        # return '''
-        #     <p>Subscription confirmed. Any breaches tied to your email will be sent to you shortly. To ensure you don't miss future alerts, please check your spam folder and whitelist our address.</p>
-        # '''
-
-    SUBSCRIBER_FORM = '''
-        <form method="POST">
-            <p>Subscribe to receive automatic alerts about security breaches associated with your email address.</p>
-            <input name="email" type="email" />
-            <input type="submit" value="Subscribe" />
-        </form>
-    '''
+def subscribe_route():
+    subscribe_html = '''
+                <form method="POST">
+                    <p>Subscribe to receive automatic alerts about security breaches associated with your email address.</p>
+                    <input name="email" type="email" />
+                    <input type="submit" value="Subscribe" />
+                </form>
+            '''
 
     if request.method == 'POST':
         data = request.get_json() if request.is_json else request.form
-        _email = data.get('email')
+        email = data.get('email')
 
-        if not _email:
+        if not email:
             return "Email is required", 400
 
         try:
-            email_info = validate_email(_email)
-            _email = email_info.normalized
+            email_info = validate_email(email)
+            email = email_info.normalized
         except EmailNotValidError as e:
             return (str(e), 400)
 
+        try:
+            subscribe(email)
+        except Exception as e:
+            return f"Subscribe failed: {e}", 500
 
-        return _subscribe(_email)
-    else:
-        return SUBSCRIBER_FORM
+        return f"Subscribed {email}", 200
 
-@app.get('/hibp/<email>')
-def _hibp(email):
+    return subscribe_html
+
+
+@app.route('/unsubscribe', methods=['GET', 'POST'])
+def unsubscribe_route():
+    form_html = '''
+            <form method="POST">
+                <p>Unsubscribe from breach alerts.</p>
+                <input name="email" type="email" required />
+                <input type="submit" value="Unsubscribe" />
+            </form>
+        '''
+
+    if request.method == 'POST':
+        data = request.form
+        email = data.get('email')
+
+        if not email:
+            return "Email is required", 400
+
+        try:
+            email_info = validate_email(email)
+            email = email_info.normalized
+        except EmailNotValidError as e:
+            return str(e), 400
+
+        try:
+            unsubscribe(email)
+        except Exception as e:
+            return f"Unsubscribe failed: {e}", 500
+
+        return f"Unsubscribed {email}", 200
+
+    return form_html
+
+
+@app.route('/hibp', methods=['POST'])
+def hibp_route():
+    email = request.get_json()['email']
     return hibp(email)
 
 
