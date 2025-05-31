@@ -335,7 +335,7 @@ def hibp_route():
     breaches = hibp(email)
     for breach in breaches:
         upsert_breach(breach)
-        upsert_account_breach(breach)
+        upsert_account_breach(account, breach)
 
 
 if __name__ == '__main__':
