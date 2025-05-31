@@ -38,7 +38,7 @@ class Config:
 config = Config()
 engine = create_engine(config.db_url, pool_pre_ping=True)
 SessionLocal = scoped_session(sessionmaker(bind=engine))
-app = Flask(__name__)
+app = Flask("Have I Been Pwned Alert Service")
 
 
 def touch(email, timestamp: datetime):
@@ -195,7 +195,7 @@ def upsert_breach(breach):
         session.close()
 
 
-def insert_account_breach():
+def upsert_account_breach():
     session = SessionLocal()
     try:
         pass
@@ -313,7 +313,17 @@ def unsubscribe_route():
 @app.route('/hibp', methods=['POST'])
 def hibp_route():
     email = request.get_json()['email']
-    return hibp(email)
+    account = get_account(email)
+
+    # One-off call to hibp(). No upsert to postgres.
+    if not account:
+        return hibp(email)
+
+    # Upsert breaches to postgres
+    breaches = hibp(email)
+    for breach in breaches:
+        upsert_breach(breach)
+        upsert_account_breach(breach)
 
 
 if __name__ == '__main__':
