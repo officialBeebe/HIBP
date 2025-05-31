@@ -41,35 +41,6 @@ SessionLocal = scoped_session(sessionmaker(bind=engine))
 app = Flask("Have I Been Pwned Alert Service")
 
 
-def touch(email, timestamp: datetime):
-    session = SessionLocal()
-
-    try:
-        with session.begin():
-            session.execute(text("update account set last_touch=:timestamp where email=:email"), {"email": email, "timestamp": timestamp})
-    except Exception as e:
-        session.rollback()
-        logger.error(f"DB account.last_touch update failed: {e}")
-        raise
-    finally:
-        session.close()
-
-
-def get_touch(email):
-    session = SessionLocal()
-
-    try:
-        with session.begin():
-            last_touch = session.execute(text("select last_touch from account where email=:email"), {"email": email})
-            return last_touch.scalar()
-    except Exception as e:
-        session.rollback()
-        logger.error(f"DB account.last_touch select failed: {e}")
-        raise
-    finally:
-        session.close()
-
-
 def hibp(email, max_retries=3):
     url = f"{config.HIBP_API_URL}/breachedaccount/{quote_plus(email)}?truncateResponse=false"
     headers = {
@@ -83,7 +54,6 @@ def hibp(email, max_retries=3):
         r = requests.get(url, headers=headers)
         if r.status_code == 200:
             try:
-                touch(email, datetime.now())
                 return r.json()
             except ValueError:
                 logger.error(f"Invalid JSON response for {email}")
@@ -195,12 +165,15 @@ def upsert_breach(breach):
         session.close()
 
 
-def upsert_account_breach():
+def upsert_account_breach(account, breach):
     session = SessionLocal()
+    account_id = account.get('id')
+    breach_id = breach.get('id')
     try:
         pass
     except Exception as e:
-        pass
+        session.rollback()
+        logger.error(f"Failed to upsert account breach {account.get('Email')}:{breach.get('Name')}: {e}")
     finally:
         session.close()
 
