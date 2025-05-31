@@ -210,6 +210,18 @@ def alert(email, results):
     pass
 
 
+def get_account(email):
+    session = SessionLocal()
+    try:
+        record = session.execute(text("SELECT * FROM account WHERE email = :email"), {'email': email})
+        return record
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to get account {email}: {e}")
+        raise
+    finally:
+        session.close()
+
 def subscribe(email):
     # Add account to Postgres
     session = SessionLocal()
