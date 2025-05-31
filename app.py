@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 import email
 import os
@@ -105,8 +106,14 @@ def hibp(email, max_retries=3):
     return None
 
 
-def parse_urls():
-    pass
+def parse_urls(string):
+    url_pattern = re.compile(
+        r'(https?://[^\s]+)',
+        re.IGNORECASE
+    )
+
+    matches = url_pattern.findall(string)
+    return matches
 
 
 def insert_breach(breach):
