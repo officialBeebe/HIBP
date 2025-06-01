@@ -225,9 +225,9 @@ def get_account_breaches(email):
                 FROM account AS a
                 INNER JOIN account_breach AS ab ON a.id = ab.account_id
                 INNER JOIN breach AS b ON ab.breach_id = b.id
-                WHERE a.email = ':email';
+                WHERE a.email = :email;
             """), {'email': email})
-            return account_breaches.mappings().fetchall() if account_breaches else None
+            return [dict(row) for row in account_breaches.mappings().fetchall()] if account_breaches else None
     except Exception as e:
         session.rollback()
         logger.error(f"Failed to get account breaches for {email}: {e}")
