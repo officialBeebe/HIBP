@@ -61,12 +61,12 @@ def account_breaches_route():
 
     for breach in account_breaches:
         # Convert datetime to RFC 1123 format or ISO 8601
-        dt = breach["modified_date"]
+        dt = breach["breach_date"]
         modified_str = dt.strftime("%a, %d %b %Y %H:%M:%S GMT") if hasattr(dt, 'strftime') else str(dt)
 
         ordered_breaches.append(OrderedDict([
             ("name", breach["name"]),
-            ("modified_date", modified_str),
+            ("breach_date", modified_str),
             ("data_classes", breach["data_classes"]),
         ]))
 

@@ -21,7 +21,7 @@ def get_account_breaches(email):
     try:
         with session.begin():
             account_breaches = session.execute(text("""
-                SELECT b.name, b.modified_date, b.data_classes
+                SELECT b.name, b.breach_date, b.data_classes
                 FROM account AS a
                 INNER JOIN account_breach AS ab ON a.id = ab.account_id
                 INNER JOIN breach AS b ON ab.breach_id = b.id
