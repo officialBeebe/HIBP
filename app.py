@@ -336,8 +336,8 @@ def unsubscribe_route():
     return form_html
 
 
-@app.route('/hibp', methods=['POST'])
-def hibp_route():
+@app.route('/hibp/update/account/breaches', methods=['POST'])
+def hibp_update_account_breaches_route():
     data = request.get_json(silent=True)
     if not data or 'email' not in data:
         return jsonify({'error': 'Missing email'}), 400
@@ -353,8 +353,8 @@ def hibp_route():
         return jsonify({'error': f'Failed to retrieve breaches for {email}'}), 502
 
     account = get_account(email)
-    if not account: # One-off call to hibp(). No upsert to postgres.
-        return jsonify(breaches or []), 200
+    if not account:
+        return jsonify({'error': f'No account found for {email}'}), 404
 
     # Upsert breaches to postgres
     try:
@@ -368,14 +368,14 @@ def hibp_route():
     return Response(status=204)
 
 
-@app.route('/hibp/account/breaches', methods=['POST'])
+@app.route('/hibp/account/breaches', methods=['GET'])
 def hibp_account_breaches_route():
-    data = request.get_json(silent=True)
-    if not data or 'email' not in data:
+    email = request.args.get('email')
+    if not email:
         return jsonify({'error': 'Missing email'}), 400
 
     try:
-        email_info = validate_email(data['email'])
+        email_info = validate_email(email)
         email = email_info.normalized
     except EmailNotValidError as e:
         return jsonify({'error': str(e)}), 400
