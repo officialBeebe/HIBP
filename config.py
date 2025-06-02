@@ -15,6 +15,8 @@ class Config:
     HIBP_API_URL = os.getenv("HIBP_API_URL")
     HIBP_API_KEY = os.getenv("HIBP_API_KEY")
     HIBP_USER_AGENT = os.getenv("HIBP_USER_AGENT")
+    SERVICE_URL = os.getenv("SERVICE_URL")
+    SERVICE_SECRET_KEY = os.getenv("SERVICE_SECRET_KEY")
 
     @property
     def db_url(self):
