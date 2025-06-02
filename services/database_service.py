@@ -146,7 +146,7 @@ def upsert_account_breach(account, breach_id):
         session.close()
 
 
-def subscribe(email):
+def add_account(email):
     # Add account to Postgres
     session = SessionLocal()
     try:
@@ -160,7 +160,7 @@ def subscribe(email):
         session.close()
 
 
-def unsubscribe(email):
+def delete_account(email):
     session = SessionLocal()
     try:
         with session.begin():
@@ -173,7 +173,7 @@ def unsubscribe(email):
         session.close()
 
 
-def update_email(email):
+def update_account(email):
     session = SessionLocal()
     try:
         with session.begin():
