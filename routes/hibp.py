@@ -38,7 +38,8 @@ def update_account_breaches_route():
         logger.error(f"Failed to upsert breaches {email}:{e}")
         return jsonify({"error": str(e)}), 500
 
-    return Response(status=204)
+    return jsonify({'status': 'updated'}), 200
+
 
 
 @hibp_bp.route('/hibp/account/breaches', methods=['GET'])
@@ -68,6 +69,7 @@ def account_breaches_route():
             ("name", breach["name"]),
             ("breach_date", modified_str),
             ("data_classes", breach["data_classes"]),
+            ("description", breach["description"]),
         ]))
 
     payload = OrderedDict([
