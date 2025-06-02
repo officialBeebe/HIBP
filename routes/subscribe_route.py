@@ -2,8 +2,7 @@ import requests
 from flask import Blueprint, request, jsonify, Response, render_template_string, render_template
 from email_validator import validate_email, EmailNotValidError
 
-from services.account_service import get_account_breaches, get_account
-from services.subscribe_service import subscribe, unsubscribe
+from services.database_service import get_all_account_breaches, get_account_record, subscribe, unsubscribe
 from config import logger
 
 sub_bp = Blueprint('subscribe', __name__)
@@ -43,7 +42,7 @@ def subscribe_route():
         return str(e), 400
 
     try:
-        if not get_account(email):
+        if not get_account_record(email):
             subscribe(email)
     except Exception as e:
         logger.exception("Subscribe failed")
@@ -59,7 +58,7 @@ def subscribe_route():
         return f"Breaches update failed: {e}", 500
 
     try:
-        breaches = get_account_breaches(email)
+        breaches = get_all_account_breaches(email)
         breaches = sorted(breaches, key=lambda b: b['breach_date'], reverse=True)
         print(breaches)
         return render_template("subscribe/subscribe.html", email=email, breaches=breaches)

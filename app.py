@@ -1,6 +1,6 @@
 from flask import Flask
-from routes.hibp import hibp_bp
-from routes.subscribe import sub_bp
+from routes.hibp_route import hibp_bp
+from routes.subscribe_route import sub_bp
 
 app = Flask("Have I Been Pwned Alert Service")
 

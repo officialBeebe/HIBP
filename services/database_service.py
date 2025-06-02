@@ -2,6 +2,39 @@ from sqlalchemy import text
 from db import SessionLocal
 from config import logger
 
+def get_account_record(email):
+    session = SessionLocal()
+    try:
+        with session.begin():
+            record = session.execute(text("SELECT * FROM account WHERE email = :email"), {'email': email})
+            return record.mappings().fetchone()
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to get account {email}: {e}")
+        raise
+    finally:
+        session.close()
+
+
+def get_all_account_breaches(email):
+    session = SessionLocal()
+    try:
+        with session.begin():
+            account_breaches = session.execute(text("""
+                SELECT b.name, b.breach_date, b.data_classes, b.description
+                FROM account AS a
+                INNER JOIN account_breach AS ab ON a.id = ab.account_id
+                INNER JOIN breach AS b ON ab.breach_id = b.id
+                WHERE a.email = :email;
+            """), {'email': email})
+            return [dict(row) for row in account_breaches.mappings().fetchall()] if account_breaches else None
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Failed to get account breaches for {email}: {e}")
+        raise
+    finally:
+        session.close()
+
 def upsert_breach(breach):
     session = SessionLocal()
     try:
@@ -109,5 +142,45 @@ def upsert_account_breach(account, breach_id):
     except Exception as e:
         session.rollback()
         logger.error(f"Failed to upsert account breach {account.get('Email')}:{breach_id}: {e}")
+    finally:
+        session.close()
+
+
+def subscribe(email):
+    # Add account to Postgres
+    session = SessionLocal()
+    try:
+        with session.begin():
+            session.execute(text("insert into account (email) values (:email)"), {"email": email})
+    except Exception as e:
+        session.rollback()
+        logger.error(f"DB account insert failed: {e}")
+        raise
+    finally:
+        session.close()
+
+
+def unsubscribe(email):
+    session = SessionLocal()
+    try:
+        with session.begin():
+            session.execute(text("delete from account where email=:email"), {"email": email})
+    except Exception as e:
+        session.rollback()
+        logger.error(f"DB account delete failed: {e}")
+        raise
+    finally:
+        session.close()
+
+
+def update_email(email):
+    session = SessionLocal()
+    try:
+        with session.begin():
+            session.execute(text(""), {"email": email})
+    except Exception as e:
+        session.rollback()
+        logger.error(f"DB account update failed: {e}")
+        raise
     finally:
         session.close()
