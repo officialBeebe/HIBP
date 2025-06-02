@@ -1,0 +1,1 @@
+# Script creates postgres database, tables, user and permissions

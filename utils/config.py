@@ -1,0 +1,1 @@
+# Tools loads environment variables at runtime or configures local .env
