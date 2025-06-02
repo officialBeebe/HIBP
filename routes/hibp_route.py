@@ -23,7 +23,7 @@ def update_account_breaches_route():
 
     breaches = hibp(email)
     if breaches is None:
-        return jsonify({'error': f'Failed to retrieve breaches for {email}'}), 502
+        return jsonify({'error': f'Yay! No breaches to retrieve for {email}'}), 204
 
     account = get_account_record(email)
     if not account:
