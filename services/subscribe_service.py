@@ -27,3 +27,16 @@ def unsubscribe(email):
         raise
     finally:
         session.close()
+
+
+def update_email(email):
+    session = SessionLocal()
+    try:
+        with session.begin():
+            session.execute(text(""), {"email": email})
+    except Exception as e:
+        session.rollback()
+        logger.error(f"DB account update failed: {e}")
+        raise
+    finally:
+        session.close()
