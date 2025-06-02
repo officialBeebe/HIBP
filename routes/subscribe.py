@@ -1,5 +1,8 @@
-from flask import Blueprint, request, jsonify, Response, render_template_string
+import requests
+from flask import Blueprint, request, jsonify, Response, render_template_string, render_template
 from email_validator import validate_email, EmailNotValidError
+
+from services.account_service import get_account_breaches, get_account
 from services.subscribe_service import subscribe, unsubscribe
 from config import logger
 
@@ -40,11 +43,29 @@ def subscribe_route():
         return str(e), 400
 
     try:
-        subscribe(email)
-        return f"Subscribed {email}", 200
+        if not get_account(email):
+            subscribe(email)
     except Exception as e:
         logger.exception("Subscribe failed")
         return f"Subscribe failed: {e}", 500
+
+    try:
+        # Send internal POST to update breaches
+        resp = requests.post("http://localhost:5000/hibp/update/account/breaches", json={"email": email})
+        if resp.status_code != 200:
+            return f"Breaches update failed: {resp.json()}", 500
+    except Exception as e:
+        logger.exception("Breaches update failed")
+        return f"Breaches update failed: {e}", 500
+
+    try:
+        breaches = get_account_breaches(email)
+        breaches = sorted(breaches, key=lambda b: b['breach_date'], reverse=True)
+        print(breaches)
+        return render_template("subscribe/subscribe.html", email=email, breaches=breaches)
+    except Exception as e:
+        logger.exception("Failed to get account breaches for new subscriber")
+        return f"New subscriber breach check failed: {e}", 500
 
 @sub_bp.route('/unsubscribe', methods=['GET', 'POST'])
 def unsubscribe_route():
