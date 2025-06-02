@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Subscribe</title>
+</head>
+<body>
+    <h1>Email breaches for {{ email }}</h1>
+    <ul id="breaches">
+        {% for breach in breaches %}
+            <li>
+                <h2>{{ breach.name }} - {{ breach.breach_date }}</h2>
+                <p>{{ breach.data_classes }}</p>
+                <p>{{ breach.description|safe }}</p>
+                <hr>
+            </li>
+        {% else %}
+            <li>No breaches found.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
