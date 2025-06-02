@@ -1,0 +1,14 @@
+<!-- templates/unsubscribe/unsubscribe_form.html -->
+<h2>Unsubscribe</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <p>{{ form.email.label }} {{ form.email() }}</p>
+    {% for error in form.email.errors %}
+        <p class="error">{{ error }}</p>
+    {% endfor %}
+    {{ form.submit() }}
+</form>
+
+{% if message %}
+    <p>{{ message }}</p>
+{% endif %}
