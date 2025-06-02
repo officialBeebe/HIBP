@@ -1,19 +1,6 @@
-from flask import Flask
-from routes.hibp_route import hibp_bp
-from routes.subscribe_route import sub_bp
+from __init__ import create_app
 
-app = Flask("Have I Been Pwned Alert Service")
-
-@app.route('/', methods=['GET'])
-def index_route():
-    return '''
-            <h1>Welcome to the Have I Been Pwned Alert App!</h1>
-            <p><a href="/subscribe">Subscribe</a> | <a href="/unsubscribe">Unsubscribe</a></p>
-        '''
-
-# Register blueprints
-app.register_blueprint(hibp_bp)
-app.register_blueprint(sub_bp)
+app = create_app()
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
