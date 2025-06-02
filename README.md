@@ -6,3 +6,9 @@
     - [pg_notify in Postgres trigger function](https://stackoverflow.com/questions/5412474/using-pg-notify-in-postgresql-trigger-function)
 - [Jinja](https://jinja.palletsprojects.com/en/stable/)
 - [Postgres](https://www.postgresql.org/docs/)
+
+# User Stories
+
+- When I subscribe via the webview, I want to see the current breaches for my account
+- I want an _Unsubscribe_ option in my **text** alerts
+
