@@ -1,8 +1,8 @@
 from flask import Flask
 from config import config
 
-from routes.subscribe_route import sub_bp
-from routes.hibp_route import hibp_bp
+from app.routes.subscribe_route import sub_bp
+from app.routes.hibp_route import hibp_bp
 
 def create_app(_config=config):
     app = Flask(__name__)

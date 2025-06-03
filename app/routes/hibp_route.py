@@ -3,8 +3,8 @@ from collections import OrderedDict
 
 from flask import Blueprint, request, jsonify, Response
 from email_validator import validate_email, EmailNotValidError
-from services.database_service import get_account_record, get_all_account_breaches, upsert_breach, upsert_account_breach
-from api.hibp_api import hibp  # helper wrapping the requests logic
+from app.services.database_service import get_account_record, get_all_account_breaches, upsert_breach, upsert_account_breach
+from app.api.hibp_api import hibp  # helper wrapping the requests logic
 from config import logger
 
 hibp_bp = Blueprint('hibp', __name__)

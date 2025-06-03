@@ -1,14 +1,14 @@
 import requests
-from flask import Blueprint, request, jsonify, Response, render_template_string, render_template
+from flask import Blueprint
 from email_validator import validate_email, EmailNotValidError
 
-from forms import SubscribeForm, UnsubscribeForm
-from services.database_service import get_all_account_breaches, get_account_record, add_account, delete_account
-from config import logger, config
+from app.forms.forms import UnsubscribeForm
+from app.services.database_service import get_all_account_breaches, get_account_record, add_account, delete_account
+from config import logger
 
 sub_bp = Blueprint('subscribe', __name__)
 
-from forms import SubscribeForm
+from app.forms.forms import SubscribeForm
 from flask import render_template
 
 @sub_bp.route('/subscribe', methods=['GET', 'POST'])
