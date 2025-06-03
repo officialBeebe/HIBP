@@ -1,0 +1,25 @@
+[build-system]
+requires = [
+  "setuptools >= 80.9.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hibp-alert-service"
+dynamic = ["version", "description"]
+dependencies = [
+
+]
+requires-python = ">=3.13.3"
+authors = [
+  {name = "Dylan Beebe", email = "dylbeebe@gmail.com"}
+]
+readme = "README.md"
+license = "GPL-3.0-or-later"
+keywords = ["have-i-been-pwned", "hibp", "alert", "service"]
+
+[project.optional-dependencies]
+dev = []
+
+[project.urls]
+Repository = "https://github.com/officialBeebe/HIBP"
