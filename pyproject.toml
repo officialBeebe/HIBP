@@ -6,11 +6,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hibp-alert-service"
-dynamic = ["version", "description"]
-dependencies = [
-
-]
+version = "2025.6.2a1"
+dependencies = []
 requires-python = ">=3.13.3"
+
 authors = [
   {name = "Dylan Beebe", email = "dylbeebe@gmail.com"}
 ]
@@ -23,3 +22,6 @@ dev = []
 
 [project.urls]
 Repository = "https://github.com/officialBeebe/HIBP"
+
+[tool.setuptools.packages.find]
+where = ["src"]
