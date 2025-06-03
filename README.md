@@ -17,10 +17,4 @@
   - [Version specifiers](https://packaging.python.org/en/latest/specifications/version-specifiers/#version-specifiers)
   - [Download dependencies declared in pyproject.toml](https://stackoverflow.com/questions/62408719/download-dependencies-declared-in-pyproject-toml-using-pip)
 
----
-
-# User Stories
-
-- When I subscribe via the webview, I want to see the current breaches for my account
-- I want an _Unsubscribe_ option in my **text** alerts
 
