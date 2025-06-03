@@ -7,6 +7,7 @@ load_dotenv()
 
 
 class Config:
+    DB_DRIVER = os.getenv("DB_DRIVER")
     DB_USER = os.getenv("DB_USER")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
     DB_HOST = os.getenv("DB_HOST")
@@ -20,7 +21,7 @@ class Config:
 
     @property
     def db_url(self):
-        return f"postgresql+psycopg2://{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_DATABASE}"
+        return f"{self.DB_DRIVER}://{self.DB_USER}:{quote_plus(self.DB_PASSWORD)}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_DATABASE}"
 
 config = Config()
 
