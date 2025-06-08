@@ -9,7 +9,7 @@ email_validator==2.2.0
 Flask==3.1.1
 Flask-WTF==1.2.2
 greenlet==3.2.2
--e git+ssh://git@github.com/officialBeebe/HIBP.git@7ef3cbdf1f4e2400dd3835053db4e877912b935d#egg=hibp_service
+-e ./hibp_service
 idna==3.10
 itsdangerous==2.2.0
 Jinja2==3.1.6
