@@ -47,6 +47,9 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Install this project as an editable package (required for Alembic, Flask CLI, etc)
+pip install -e .
 ```
 
 ### Set environment variables
