@@ -9,6 +9,18 @@ from config import logger
 
 hibp_bp = Blueprint('hibp', __name__)
 
+@hibp_bp.route('/', methods=['POST'])
+def check_email():
+    data = request.get_json(silent=True)
+    if not data or 'email' not in data:
+        return jsonify({'error': 'Missing email'}), 400
+
+    try:
+        email_info = validate_email(data['email'])
+        email = email_info.normalized
+    except EmailNotValidError as e:
+        return jsonify({'error': })
+
 @hibp_bp.route('/hibp/update/account/breaches', methods=['POST'])
 def update_account_breaches_route():
     data = request.get_json(silent=True)
