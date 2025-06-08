@@ -9,7 +9,7 @@ from config import logger
 
 hibp_bp = Blueprint('hibp', __name__)
 
-@hibp_bp.route('/', methods=['POST'])
+@hibp_bp.route('/hibp/check', methods=['POST'])
 def check_email():
     data = request.get_json(silent=True)
     if not data or 'email' not in data:
@@ -19,7 +19,13 @@ def check_email():
         email_info = validate_email(data['email'])
         email = email_info.normalized
     except EmailNotValidError as e:
-        return jsonify({'error': })
+        return jsonify({'error': str(e) }), 400
+
+    breaches = hibp(email)
+    if breaches is None:
+        return jsonify({'message': f'No breaches reported for {email}'}), 204
+
+    return jsonify({'breaches': breaches}), 200
 
 @hibp_bp.route('/hibp/update/account/breaches', methods=['POST'])
 def update_account_breaches_route():
@@ -35,7 +41,7 @@ def update_account_breaches_route():
 
     breaches = hibp(email)
     if breaches is None:
-        return jsonify({'error': f'Yay! No breaches to retrieve for {email}'}), 204
+        return jsonify({'message': f'No breaches reported for {email}'}), 204
 
     account = get_account_record(email)
     if not account:
